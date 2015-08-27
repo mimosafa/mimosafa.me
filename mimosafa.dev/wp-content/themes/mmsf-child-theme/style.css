@@ -1,0 +1,23 @@
+/*
+Theme Name: Child Theme for mimosafa.me
+Template: twentyfifteen
+Version: 2015.0
+Author: mimosafa
+Author URI: http://mimosafa.me
+*/
+
+body {
+  font-family: "Lucida Grande", "Lucida Sans Unicode", "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", Helvetica, Arial, Verdana, sans-serif;
+  background-color: rgba(0,0,0,0);
+  border-top: 4px solid #008b8b;
+}
+a, a:visited {
+  color: #008b8b;
+}
+.site-title a {
+  font-size: .8em;
+}
+.entry-content {
+  font-size: .8em;
+  letter-spacing: .1em
+}

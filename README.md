@@ -1,3 +1,3 @@
-# mimosafa.me
+# Staticが止まらない - mimosafa.me
 
-WordPress Theme for mimosafa.me.
+WordPress Development Environment for mimosafa.me.
