@@ -13,7 +13,7 @@ if ( _wprofile_plugin_requirements() ) {
 	function _wprofile_init() {
 		if ( class_exists( 'mimosafa\\ClassLoader' ) ) {
 			mimosafa\ClassLoader::register( 'WProfile', __DIR__ . '/inc', [ 'hyphenate_classname' => true ] );
-			WProfile\Plugin::init();
+			WProfile\Bootstrap::init();
 		}
 	}
 	//*/

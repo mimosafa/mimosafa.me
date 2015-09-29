@@ -3,15 +3,10 @@ namespace WProfile;
 
 use mimosafa\WP as WP;
 
-class Plugin {
+class Bootstrap {
+	use Singleton { getInstance as init; }
 
 	private static $options;
-
-	public static function init() {
-		static $instance;
-		if ( ! $instance )
-			$instance = new self();
-	}
 
 	private function __construct() {
 		$this->settings_options();
@@ -28,12 +23,7 @@ class Plugin {
 	}
 
 	public function register_repositories() {
-		$history_args = [
-			'label' => 'Your History',
-			'show_ui' => true,
-			'show_in_menu' => 'users.php'
-		];
-		register_post_type( 'wprofile_history', $history_args );
+		Repos\History::init();
 
 		$skills_args = [
 			'label' => 'Your Skills',
