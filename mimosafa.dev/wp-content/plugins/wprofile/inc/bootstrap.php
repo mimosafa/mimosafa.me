@@ -12,7 +12,7 @@ class Bootstrap {
 		$this->settings_options();
 		if ( is_admin() )
 			$this->settings_page();
-		add_action( 'init', [ $this, 'register_repositories' ] );
+		$this->register_repositories();
 	}
 
 	private function settings_options() {
@@ -24,26 +24,14 @@ class Bootstrap {
 
 	public function register_repositories() {
 		Repos\History::init();
-
-		$skills_args = [
-			'label' => 'Your Skills',
-			'show_ui' => true,
-			'show_in_menu' => 'users.php'
-		];
-		register_post_type( 'wprofile_skill', $skills_args );
-
-		$resume_args = [
-			'label' => 'Resumes',
-			'show_ui' => true,
-			'menu_position' => 70
-		];
-		register_post_type( 'wprofile_resume', $resume_args );
+		Repos\Skills::init();
+		Repos\Resumes::init();
 	}
 
 	private function settings_page() {
 		$page = new WP\Settings\Page( 'options-general.php' );
 		$page
-		->init( 'wprofile', 'WProfile' )
+		->init( 'wprofile', __( 'WProfile', 'wprofile' ) )
 			->section( 'frontend-setting' )
 				->field( 'display-frontend' )
 				->option( self::$options->display_frontend, 'checkbox' );

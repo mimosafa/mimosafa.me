@@ -1,14 +1,17 @@
 <?php
-/*
-Plugin Name: WProfile
-Author: Toshimichi Mimoto
-*/
+/**
+ * Plugin Name: WProfile
+ * Author: Toshimichi Mimoto
+ * Text Domain: wprofile
+ * Domain Path: /languages
+ * License: GPLv2
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ */
 
 define( 'WPROFILE_FILE', __FILE__ );
 define( 'WPROFILE_BASENAME', plugin_basename( __FILE__ ) );
 
 if ( _wprofile_plugin_requirements() ) {
-	//*
 	add_action( 'plugins_loaded', '_wprofile_init' );
 	function _wprofile_init() {
 		if ( class_exists( 'mimosafa\\ClassLoader' ) ) {
@@ -16,8 +19,6 @@ if ( _wprofile_plugin_requirements() ) {
 			WProfile\Bootstrap::init();
 		}
 	}
-	//*/
-	# require_once __DIR__ . '/test.php';
 }
 
 /**
