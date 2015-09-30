@@ -150,14 +150,14 @@ class History extends PostType {
 		}
 		return $vars;
 		*/
-		if ( ! $query->is_main_query() )
-			return;
-		$order = $query->get( 'order' ) ?: 'asc';
-		$orderby = $query->get( 'orderby' );
-		if ( ! $orderby || $orderby === 'history_date' ) {
-			$query->set( 'meta_key', 'wprofile_history_date' );
-			$query->set( 'orderby', 'meta_value' );
-			$query->set( 'order', $order );
+		if ( $query->query_vars['post_type'] === $this->post_type && $query->is_main_query() ) {
+			$order = $query->get( 'order' ) ?: 'asc';
+			$orderby = $query->get( 'orderby' );
+			if ( ! $orderby || $orderby === 'history_date' ) {
+				$query->set( 'meta_key', 'wprofile_history_date' );
+				$query->set( 'orderby', 'meta_value' );
+				$query->set( 'order', $order );
+			}
 		}
 	}
 
