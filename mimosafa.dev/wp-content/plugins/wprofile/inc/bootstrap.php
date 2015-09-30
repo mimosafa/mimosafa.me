@@ -24,6 +24,7 @@ class Bootstrap {
 
 	public function register_repositories() {
 		Repos\History::init();
+		Repos\History_Cat::init();
 		Repos\Skills::init();
 		Repos\Resumes::init();
 	}

@@ -27,6 +27,7 @@ class History extends PostType {
 	public function post_type_args( Array $args ) {
 		$args['show_in_menu'] = 'users.php';
 		$args['supports'] = [ 'title', 'editor', 'custom-fields' ];
+		$args['taxonomies'] = [ 'wprofile_history_cat' ];
 		return $args;
 	}
 
@@ -35,6 +36,8 @@ class History extends PostType {
 	}
 
 	public function save_post( $post_id ) {
+		if ( ! $_POST )
+			return;
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 			return;
 		if ( ! current_user_can( 'edit_post', $post_id ) )
@@ -44,28 +47,27 @@ class History extends PostType {
 			'wprofile_history_date_period' => \FILTER_DEFAULT,
 			'wprofile_history_date' => \FILTER_DEFAULT
 		];
-		if ( $args = filter_input_array( \INPUT_POST, $def ) ) :
-			extract( $args );
-			if ( isset( $_wprofile_history_date_nonce ) && wp_verify_nonce( $_wprofile_history_date_nonce, 'wprofile-history-date' ) ) {
-				if ( isset( $wprofile_history_date_period ) && in_array( $wprofile_history_date_period, [ 'month', 'date' ], true ) ) {
-					update_post_meta( $post_id, 'wprofile_history_date_period', $wprofile_history_date_period );
-				}
-				if ( isset( $wprofile_history_date ) ) {
-					$ymd = explode( '-', $wprofile_history_date );
-					if ( in_array( count( $ymd ), [ 2, 3 ], true ) ) {
-						$y = (int) $ymd[0];
-						$m = (int) $ymd[1];
-						$d = isset( $ymd[2] ) ? (int) $ymd[2] : 1;
-						if ( checkdate( $m, $d, $y ) ) {
-							if ( count( $ymd ) === 2 ) {
-								$wprofile_history_date .= '-' . sprintf( '%02d', date( 't', $wprofile_history_date . '-01' ) );
-							}
-							update_post_meta( $post_id, 'wprofile_history_date', $wprofile_history_date );
+		$args = filter_input_array( \INPUT_POST, $def );
+		extract( $args );
+		if ( isset( $_wprofile_history_date_nonce ) && wp_verify_nonce( $_wprofile_history_date_nonce, 'wprofile-history-date' ) ) {
+			if ( isset( $wprofile_history_date_period ) && in_array( $wprofile_history_date_period, [ 'month', 'date' ], true ) ) {
+				update_post_meta( $post_id, 'wprofile_history_date_period', $wprofile_history_date_period );
+			}
+			if ( isset( $wprofile_history_date ) ) {
+				$ymd = explode( '-', $wprofile_history_date );
+				if ( in_array( count( $ymd ), [ 2, 3 ], true ) ) {
+					$y = (int) $ymd[0];
+					$m = (int) $ymd[1];
+					$d = isset( $ymd[2] ) ? (int) $ymd[2] : 1;
+					if ( checkdate( $m, $d, $y ) ) {
+						if ( count( $ymd ) === 2 ) {
+							$wprofile_history_date .= '-' . sprintf( '%02d', date( 't', $wprofile_history_date . '-01' ) );
 						}
+						update_post_meta( $post_id, 'wprofile_history_date', $wprofile_history_date );
 					}
 				}
 			}
-		endif;
+		}
 	}
 
 	public function date_meta_box( $post ) {
@@ -73,8 +75,6 @@ class History extends PostType {
 		$period = get_post_meta( $post->ID, 'wprofile_history_date_period', true ) ?: 'month';
 		$month_val = $date ? date( 'Y-m', strtotime( $date ) ) : date( 'Y-m' );
 		$date_val  = $date ? date( 'Y-m-d', strtotime( $date ) ) : date( 'Y-m-d' );
-		$month_lbl = __( 'Month', 'wprofile' );
-		$date_lbl  = __( 'Day', 'wprofile' );
 		$date_attr  = $period === 'date' ? 'type="date" name="wprofile_history_date"' : 'type="hidden"';
 		$month_attr = $period === 'month' ? 'type="month" name="wprofile_history_date"' : 'type="hidden"';
 		wp_nonce_field( 'wprofile-history-date', '_wprofile_history_date_nonce' );
@@ -82,11 +82,11 @@ class History extends PostType {
 <div id="wprofile-history-date-period">
 	<label>
 		<input type="radio" name="wprofile_history_date_period" value="month"<?php checked( $period, 'month' ); ?>>
-		<?= esc_html( $month_lbl ) ?>
+		<?= __( 'Month', 'wprofile' ) ?>
 	</label>
 	<label>
 		<input type="radio" name="wprofile_history_date_period" value="date"<?php checked( $period, 'date' ); ?>>
-		<?= esc_html( $date_lbl ) ?>
+		<?= __( 'Day', 'wprofile' ) ?>
 	</label>
 </div>
 <hr>
@@ -113,10 +113,18 @@ class History extends PostType {
 	}
 
 	public function manage_columns( $columns ) {
+		/*
 		extract( $columns );
 		$history_date = 'Era';
 		$history_cat  = 'Category';
 		return compact( 'cb', 'history_date', 'title', 'history_cat', 'date' );
+		*/
+		return [
+			'cb' => $columns['cb'],
+			'history_date' => 'Era',
+			'title' => $columns['title'],
+			'taxonomy-wprofile_history_cat' => $columns['taxonomy-wprofile_history_cat']
+		];
 	}
 
 	public function sortable_columns( $sortable_columns ) {
@@ -142,7 +150,7 @@ class History extends PostType {
 		}
 		return $vars;
 		*/
-		if ( ! is_admin() )
+		if ( ! $query->is_main_query() )
 			return;
 		$order = $query->get( 'order' ) ?: 'asc';
 		$orderby = $query->get( 'orderby' );

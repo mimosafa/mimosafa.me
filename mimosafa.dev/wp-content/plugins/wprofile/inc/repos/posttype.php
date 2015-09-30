@@ -14,7 +14,9 @@ abstract class PostType extends Repository {
 		parent::__construct();
 		add_action( 'save_post', [ $this, 'save_post' ] );
 		add_filter( $this->post_type . '_post_type_args', [ $this, 'post_type_args' ] );
-		$this->post_type_columns();
+		if ( is_admin() ) {
+			$this->post_type_columns();
+		}
 	}
 
 	public function register() {
