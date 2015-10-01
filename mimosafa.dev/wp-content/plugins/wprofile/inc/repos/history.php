@@ -45,7 +45,8 @@ class History extends PostType {
 		$def = [
 			'_wprofile_history_date_nonce' => \FILTER_DEFAULT,
 			'wprofile_history_date_period' => \FILTER_DEFAULT,
-			'wprofile_history_date' => \FILTER_DEFAULT
+			'wprofile_history_date' => \FILTER_DEFAULT,
+			'wprofile_history_ucday' => [ \FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1, 'max_range' => 31 ] ] ]
 		];
 		$args = filter_input_array( \INPUT_POST, $def );
 		extract( $args );
@@ -61,7 +62,12 @@ class History extends PostType {
 					$d = isset( $ymd[2] ) ? (int) $ymd[2] : 1;
 					if ( checkdate( $m, $d, $y ) ) {
 						if ( count( $ymd ) === 2 ) {
-							$wprofile_history_date .= '-' . sprintf( '%02d', date( 't', $wprofile_history_date . '-01' ) );
+							if ( isset( $wprofile_history_ucday ) ) {
+								if ( checkdate( $m, $wprofile_history_ucday, $y ) ) {
+									$d = $wprofile_history_ucday;
+								}
+							}
+							$wprofile_history_date .= '-' . sprintf( '%02d', $d );
 						}
 						update_post_meta( $post_id, 'wprofile_history_date', $wprofile_history_date );
 					}
@@ -73,12 +79,15 @@ class History extends PostType {
 	public function date_meta_box( $post ) {
 		$date = (string) get_post_meta( $post->ID, 'wprofile_history_date', true );
 		$period = get_post_meta( $post->ID, 'wprofile_history_date_period', true ) ?: 'month';
-		$month_val = $date ? date( 'Y-m', strtotime( $date ) ) : date( 'Y-m' );
 		$date_val  = $date ? date( 'Y-m-d', strtotime( $date ) ) : date( 'Y-m-d' );
-		$date_attr  = $period === 'date' ? 'type="date" name="wprofile_history_date"' : 'type="hidden"';
+		$month_val = $date ? date( 'Y-m', strtotime( $date ) ) : date( 'Y-m' );
+		$ucday_val = $date ? date( 'j', strtotime( $date ) ) : 1;
+		$date_attr  = $period === 'date'  ? 'type="date" name="wprofile_history_date"'  : 'type="hidden"';
 		$month_attr = $period === 'month' ? 'type="month" name="wprofile_history_date"' : 'type="hidden"';
+		$ucday_attr = $period === 'month' ? '' : ' style="display: none;"';
 		wp_nonce_field( 'wprofile-history-date', '_wprofile_history_date_nonce' );
 ?>
+<p><?= __( 'Period', 'wprofile' ) ?></p>
 <div id="wprofile-history-date-period">
 	<label>
 		<input type="radio" name="wprofile_history_date_period" value="month"<?php checked( $period, 'month' ); ?>>
@@ -89,10 +98,14 @@ class History extends PostType {
 		<?= __( 'Day', 'wprofile' ) ?>
 	</label>
 </div>
-<hr>
+<p><?= __( 'Date', 'wprofile' ) ?></p>
 <div id="wprofile-history-date-input">
 	<input id="wprofile-history-date-input-date" step="1" value="<?= esc_attr( $date_val ) ?>" <?= $date_attr ?>>
 	<input id="wprofile-history-date-input-month" step="1" value="<?= esc_attr( $month_val ) ?>" <?= $month_attr ?>>
+	<div id="wprofile-history-date-input-uncertain-day"<?= $ucday_attr ?>>
+		<p><?= __( 'Roughly Date', 'wprofile' ) ?></p>
+		<input name="wprofile_history_ucday" type="number" min="1" max="31" step="1" value="<?= esc_attr( $ucday_val ) ?>">
+	</div>
 </div>
 <script>
 	( function( $ ) {
@@ -102,9 +115,11 @@ class History extends PostType {
 			if ( prd === 'date' ) {
 				$( '#wprofile-history-date-input-date' ).attr( 'name', 'wprofile_history_date' ).attr( 'type', 'date' );
 				$( '#wprofile-history-date-input-month' ).removeAttr( 'name' ).attr( 'type', 'hidden' );
+				$( '#wprofile-history-date-input-uncertain-day').hide();
 			} else {
 				$( '#wprofile-history-date-input-month' ).attr( 'name', 'wprofile_history_date' ).attr( 'type', 'month' );
 				$( '#wprofile-history-date-input-date' ).removeAttr( 'name' ).attr( 'type', 'hidden' );
+				$( '#wprofile-history-date-input-uncertain-day').show();
 			}
 		} );
 	} )(jQuery);
@@ -113,36 +128,33 @@ class History extends PostType {
 	}
 
 	public function manage_columns( $columns ) {
-		/*
-		extract( $columns );
-		$history_date = 'Era';
-		$history_cat  = 'Category';
-		return compact( 'cb', 'history_date', 'title', 'history_cat', 'date' );
-		*/
 		return [
 			'cb' => $columns['cb'],
-			'history_date' => 'Era',
-			'title' => $columns['title'],
-			'taxonomy-wprofile_history_cat' => $columns['taxonomy-wprofile_history_cat']
+			'time_line' => __( 'Time Line', 'wprofile' ),
+			'title' => __( 'History', 'wprofile' ),
+			'taxonomy-wprofile_history_cat' => $columns['taxonomy-wprofile_history_cat'],
+			'date' => __( 'Post Date', 'wprofile' )
 		];
 	}
 
 	public function sortable_columns( $sortable_columns ) {
-		$sortable_columns['history_date'] = [ 'history_date', true ];
+		$sortable_columns['time_line'] = [ 'time_line', true ];
 		$sortable_columns['date'][1] = false;
 		return $sortable_columns;
 	}
 
 	public function custom_columns( $column_name, $post_id ) {
-		if ( $column_name === 'history_date' ) {
+		if ( $column_name === 'time_line' ) {
+			$prd  = get_post_meta( $post_id, 'wprofile_history_date_period', true );
 			$date = get_post_meta( $post_id, 'wprofile_history_date', true );
-			echo esc_html( $date );
+			$format = $prd === 'month' ? __( 'M. Y', 'wprofile' ) : __( 'M. j, Y', 'wprofile' );
+			echo date_i18n( $format, strtotime( $date ) );
 		}
 	}
 
 	public function columns_orderby( $query /* $vars */ ) {
 		/*
-		if ( isset( $vars['orderby'] ) && $vars['orderby'] === 'history_date' ) {
+		if ( isset( $vars['orderby'] ) && $vars['orderby'] === 'time_line' ) {
 			$vars = array_merge( $vars, [
 				'meta_key' => 'wprofile_history_date',
 				'orderby'  => 'meta_value'
@@ -153,12 +165,20 @@ class History extends PostType {
 		if ( $query->query_vars['post_type'] === $this->post_type && $query->is_main_query() ) {
 			$order = $query->get( 'order' ) ?: 'asc';
 			$orderby = $query->get( 'orderby' );
-			if ( ! $orderby || $orderby === 'history_date' ) {
+			if ( ! $orderby || $orderby === 'time_line' ) {
 				$query->set( 'meta_key', 'wprofile_history_date' );
 				$query->set( 'orderby', 'meta_value' );
 				$query->set( 'order', $order );
 			}
 		}
+	}
+
+	public function columns_style() {
+		echo <<<EOF
+<style>
+	.column-time_line { width: 10em; }
+</style>
+EOF;
 	}
 
 }

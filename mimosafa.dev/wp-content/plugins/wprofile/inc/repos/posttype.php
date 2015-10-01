@@ -44,6 +44,9 @@ abstract class PostType extends Repository {
 			//add_filter( 'request', [ $this, 'columns_orderby' ] );
 			add_action( 'pre_get_posts', [ $this, 'columns_orderby' ] );
 		}
+		if ( method_exists( $this, 'columns_style' ) ) {
+			add_action( 'admin_head', [ $this, 'columns_style' ] );
+		}
 	}
 
 }

@@ -25,14 +25,14 @@ class Bootstrap {
 	public function register_repositories() {
 		Repos\History::init();
 		Repos\History_Cat::init();
-		Repos\Skills::init();
-		Repos\Resumes::init();
+		#Repos\Skills::init();
+		#Repos\Resumes::init();
 	}
 
 	private function settings_page() {
-		$page = new WP\Settings\Page( 'options-general.php' );
+		$page = new WP\Settings\Page( 'wprofile', __( 'WProfile', 'wprofile' ) );
 		$page
-		->init( 'wprofile', __( 'WProfile', 'wprofile' ) )
+		->position( 71 )
 			->section( 'frontend-setting' )
 				->field( 'display-frontend' )
 				->option( self::$options->display_frontend, 'checkbox' );
@@ -41,6 +41,7 @@ class Bootstrap {
 				->field( 'profile-slug' )
 				->option( self::$options->profile_slug, 'text' );
 		}
+		$page->init( 'edit-tags.php?taxonomy=wprofile_history_cat' );
 		$page->done();
 	}
 
