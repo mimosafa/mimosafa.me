@@ -1,14 +1,42 @@
 <?php
 namespace mimosafa\WP\Settings;
 
+/**
+ * WordPress Options API interface class
+ *
+ * @package WordPress
+ * @subpackage WordPress Libraries by mimosafa
+ *
+ * @license GPLv2
+ *
+ * @author Toshimichi Mimoto <mimosafa@gmail.com>
+ */
 class Options {
 
+	/**
+	 * @var array { @type mimosafa\WP\Settings\Options }
+	 */
 	private static $_instances = [];
 
+	/**
+	 * @var string
+	 */
 	private $_prefix;
 	private $_cache_group;
+
+	/**
+	 * @var array
+	 */
 	private $_keys = [];
 
+	/**
+	 * Instance getter (Singleton Pattern)
+	 *
+	 * @access public
+	 *
+	 * @param  string $group
+	 * @return mimosafa\WP\Settings\Options
+	 */
 	public static function instance( $group ) {
 		if ( ! self::isSanitizedString( $group ) )
 			return;
@@ -17,11 +45,25 @@ class Options {
 		return self::$_instances[$group];
 	}
 
+	/**
+	 * Constructor
+	 *
+	 * @access private
+	 */
 	private function __construct( $group ) {
 		$this->_prefix = $group . '_';
 		$this->_cache_group = $this->_prefix . 'options_cache_group';
 	}
 
+	/**
+	 * Add option key
+	 *
+	 * @access public
+	 *
+	 * @param  string          $option
+	 * @param  string|callable $filter
+	 * @return void
+	 */
 	public function add( $option, $filter = null ) {
 		if ( ! self::isSanitizedString( $option ) )
 			return false;
@@ -34,12 +76,20 @@ class Options {
 		$this->_keys[$option] = isset( $filter_cb ) ? $filter_cb : null;
 	}
 
+	/**
+	 * Full Option Key String
+	 *
+	 * @access public
+	 *
+	 * @param  string
+	 * @return string|null
+	 */
 	public function __get( $name ) {
 		return array_key_exists( $name, $this->_keys ) ? $this->_prefix . $name : null;
 	}
 
 	/**
-	 * Option interface
+	 * Options Method interface
 	 *
 	 * @access public
 	 */

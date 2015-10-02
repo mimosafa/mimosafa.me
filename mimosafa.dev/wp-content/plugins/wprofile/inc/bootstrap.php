@@ -41,7 +41,6 @@ class Bootstrap {
 				->field( 'profile-slug' )
 				->option( self::$options->profile_slug, 'text' );
 		}
-		$page->init( 'edit-tags.php?taxonomy=wprofile_history_cat' );
 		$page->done();
 	}
 
