@@ -21,3 +21,10 @@ a, a:visited {
   font-size: .8em;
   letter-spacing: .1em
 }
+.entry-content a,
+.entry-summary a,
+.page-content a,
+.comment-content a,
+.pingback .comment-body > a {
+  border-bottom: 0;
+}
