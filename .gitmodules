@@ -1,0 +1,3 @@
+[submodule "mimosafa.dev/wp-content/plugins/wp-mimosafa-libs"]
+	path = mimosafa.dev/wp-content/plugins/wp-mimosafa-libs
+	url = git@github.com:mimosafa/wp-mimosafa-libs.git
